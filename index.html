@@ -42,17 +42,23 @@
 <body class="bg-slate-100 text-slate-800">
 
     <!-- Authentication Container -->
-    <div id="auth-container" class="min-h-screen flex items-center justify-center">
-        <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center gap-3 text-slate-800">
-                    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 9.5L12 12L17 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12V17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <h1 class="text-2xl font-bold tracking-wider">VRUNDAVAN MATERIAL SUPPLIERS</h1>
+    <div id="auth-container" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="flex-grow flex items-center justify-center w-full">
+            <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+                <div class="text-center mb-8">
+                    <div class="flex items-center justify-center gap-3 text-slate-800">
+                        <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 9.5L12 12L17 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12V17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <h1 class="text-2xl font-bold tracking-wider">VRUNDAVAN MATERIAL SUPPLIERS</h1>
+                    </div>
                 </div>
+                <form id="login-form"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Back!</h2><p class="text-center text-slate-500 mb-6">Sign in to continue</p><div class="space-y-4"><input type="email" id="login-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="login-password" placeholder="Password" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Login</button><p class="text-center text-sm text-slate-500 mt-4">Don't have an account? <a href="#" id="show-signup" class="font-semibold text-blue-600 hover:underline">Sign Up</a></p></form>
+                <form id="signup-form" class="hidden"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Create Account</h2><p class="text-center text-slate-500 mb-6">Get started with your weighbridge app</p><div class="space-y-4"><input type="email" id="signup-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="signup-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Sign Up</button><p class="text-center text-sm text-slate-500 mt-4">Already have an account? <a href="#" id="show-login" class="font-semibold text-blue-600 hover:underline">Login</a></p></form>
             </div>
-            <form id="login-form"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Back!</h2><p class="text-center text-slate-500 mb-6">Sign in to continue</p><div class="space-y-4"><input type="email" id="login-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="login-password" placeholder="Password" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Login</button><p class="text-center text-sm text-slate-500 mt-4">Don't have an account? <a href="#" id="show-signup" class="font-semibold text-blue-600 hover:underline">Sign Up</a></p></form>
-            <form id="signup-form" class="hidden"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Create Account</h2><p class="text-center text-slate-500 mb-6">Get started with your weighbridge app</p><div class="space-y-4"><input type="email" id="signup-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="signup-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Sign Up</button><p class="text-center text-sm text-slate-500 mt-4">Already have an account? <a href="#" id="show-login" class="font-semibold text-blue-600 hover:underline">Login</a></p></form>
         </div>
+        <footer class="text-center p-4 text-slate-500 text-sm">
+            <p>Created with ❤️ by <strong>BHAVESH AHIR</strong></p>
+            <p class="mt-1">&copy; 2025 VRUNDAVAN MATERIAL SUPPLIERS. All Rights Reserved.</p>
+        </footer>
     </div>
     
     <!-- Main App Container -->
@@ -96,6 +102,10 @@
                 </div>
              </div>
         </div>
+        <footer class="text-center p-4 mt-8 text-slate-500 text-sm no-print">
+            <p>Created with ❤️ by <strong>BHAVESH AHIR</strong></p>
+            <p class="mt-1">&copy; 2025 VRUNDAVAN MATERIAL SUPPLIERS. All Rights Reserved.</p>
+        </footer>
     </div>
     
     <div id="toast" class="toast"></div>
@@ -109,15 +119,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBo2WNRw3oKGCNyekls4pgpaoVesjri0-8",
-            authDomain: "vrundavan-1f1c9.firebaseapp.com",
-            projectId: "vrundavan-1f1c9",
-            storageBucket: "vrundavan-1f1c9.firebasestorage.app",
-            messagingSenderId: "397473253195",
-            appId: "1:397473253195:web:14394ef43a325a00a78ace",
-            measurementId: "G-CC5DL2RD8Y"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyA0VLeSJ4_-h4HKU_KHCJzKK4_64GzgarU", authDomain: "weighbridge-f81c5.firebaseapp.com", projectId: "weighbridge-f81c5", storageBucket: "weighbridge-f81c5.firebasestorage.app", messagingSenderId: "475229400257", appId: "1:475229400257:web:45f5111d05aecc1170f840" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
@@ -257,5 +259,4 @@
     </script>
 </body>
 </html>
-"
 
