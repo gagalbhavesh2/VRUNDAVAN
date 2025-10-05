@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vrundavan Weighbridge Software</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .slip-font { font-family: 'Roboto Mono', monospace; }
+        #saved-slips-list::-webkit-scrollbar { width: 8px; }
+        #saved-slips-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #saved-slips-list::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #saved-slips-list::-webkit-scrollbar-thumb:hover { background: #555; }
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+        .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 50; left: 50%; bottom: 30px; opacity: 0; transition: opacity 0.5s, visibility 0.5s; }
+        .toast.show { visibility: visible; opacity: 1; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 40; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #slip-preview-container, #slip-preview-container * { 
+                visibility: visible; 
+            }
+            #slip-preview-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 5mm;
+                box-sizing: border-box;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- Authentication Container -->
+    <div id="auth-container" class="min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-3 text-slate-800">
+                    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 9.5L12 12L17 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12V17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <h1 class="text-2xl font-bold tracking-wider">VRUNDAVAN MATERIAL SUPPLIERS</h1>
+                </div>
+            </div>
+            <form id="login-form"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Back!</h2><p class="text-center text-slate-500 mb-6">Sign in to continue</p><div class="space-y-4"><input type="email" id="login-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="login-password" placeholder="Password" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Login</button><p class="text-center text-sm text-slate-500 mt-4">Don't have an account? <a href="#" id="show-signup" class="font-semibold text-blue-600 hover:underline">Sign Up</a></p></form>
+            <form id="signup-form" class="hidden"><h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Create Account</h2><p class="text-center text-slate-500 mb-6">Get started with your weighbridge app</p><div class="space-y-4"><input type="email" id="signup-email" placeholder="Email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"><input type="password" id="signup-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></div><button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Sign Up</button><p class="text-center text-sm text-slate-500 mt-4">Already have an account? <a href="#" id="show-login" class="font-semibold text-blue-600 hover:underline">Login</a></p></form>
+        </div>
+    </div>
+    
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden">
+        <div class="bg-slate-800 text-white p-4 text-center no-print shadow-lg">
+            <div class="container mx-auto flex items-center justify-center gap-4">
+                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 9.5L12 12L17 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12V17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h1 class="text-3xl font-bold tracking-wider">VRUNDAVAN MATERIAL SUPPLIERS</h1>
+            </div>
+        </div>
+        <header class="bg-white shadow-md p-4 no-print">
+            <div class="container mx-auto flex justify-between items-center">
+                <p class="text-sm">Logged in as: <strong id="user-email" class="text-slate-700"></strong></p>
+                <button id="logout-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-all text-sm">Logout</button>
+            </div>
+        </header>
+        <div class="container mx-auto p-4 md:p-8">
+             <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg no-print">
+                     <form id="weighbridge-form" class="space-y-6"><input type="hidden" id="editing-slip-id"><div id="form-mode-indicator" class="p-3 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold hidden">You are currently editing an existing slip.</div><div><h3 class="text-lg font-semibold border-b pb-2 mb-4 text-slate-700">Company & Weighbridge</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="text" id="company-name" placeholder="Your Company Name" class="w-full p-3 bg-slate-200 cursor-not-allowed rounded-lg border" value="VRUNDAVAN MATERIAL SUPPLIERS" readonly><input type="text" id="weighbridge-name" placeholder="Weighbridge Name/Location" class="w-full p-3 bg-slate-200 cursor-not-allowed rounded-lg border" value="Bhuj, Kutch" readonly></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-4 text-slate-700">Slip & Time Details</h3><div class="grid grid-cols-2 sm:grid-cols-4 gap-4"><div class="col-span-2 sm:col-span-4"><label for="serial-no" class="text-sm font-medium">Serial No / DC No.</label><input type="text" id="serial-no" class="w-full mt-1 p-3 bg-slate-50 rounded-lg border"></div><div><label for="in-date" class="text-sm font-medium">In Date</label><input type="date" id="in-date" class="w-full mt-1 p-3 bg-slate-50 rounded-lg border"></div><div><label for="in-time" class="text-sm font-medium">In Time</label><input type="time" id="in-time" class="w-full mt-1 p-3 bg-slate-50 rounded-lg border"></div><div><label for="out-date" class="text-sm font-medium">Out Date</label><input type="date" id="out-date" class="w-full mt-1 p-3 bg-slate-50 rounded-lg border"></div><div><label for="out-time" class="text-sm font-medium">Out Time</label><input type="time" id="out-time" class="w-full mt-1 p-3 bg-slate-50 rounded-lg border"></div></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-4 text-slate-700">Transaction Details</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="text" id="customer-name" placeholder="Customer Name" class="sm:col-span-2 w-full p-3 bg-slate-50 rounded-lg border"><input type="text" id="site" placeholder="Site" class="w-full p-3 bg-slate-50 rounded-lg border"><input type="text" id="vehicle-number" placeholder="Vehicle Number" class="w-full p-3 bg-slate-50 rounded-lg border"><input type="text" id="item-name" placeholder="Item/Material" class="w-full p-3 bg-slate-50 rounded-lg border"><input type="text" id="royalty-pass-no" placeholder="Royalty Pass No." class="w-full p-3 bg-slate-50 rounded-lg border"><input type="text" id="driver-name" placeholder="Driver's Name" class="w-full p-3 bg-slate-50 rounded-lg border"><input type="number" id="charges" placeholder="Weighment Charges (₹)" class="w-full p-3 bg-slate-50 rounded-lg border"></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-4 text-slate-700">Weight Details (in KG)</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="number" id="gross-weight" placeholder="Gross Weight" class="w-full p-3 bg-slate-50 rounded-lg border"><input type="number" id="tare-weight" placeholder="Tare Weight" class="w-full p-3 bg-slate-50 rounded-lg border"></div></div><div class="pt-4 grid grid-cols-2 gap-4"><button type="button" id="new-slip-btn" class="w-full bg-slate-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-600">New Slip</button><button type="button" id="save-update-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"></button></div></form>
+                 </div>
+                
+                <div id="slip-preview-container" class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-2 border-dashed border-slate-300">
+                    <div class="slip-content-part">
+                        <div class="text-center"><h2 class="preview-company-name text-2xl font-bold text-slate-900">VRUNDAVAN MATERIAL SUPPLIERS</h2><p class="preview-weighbridge-name text-sm text-slate-500">Bhuj, Kutch</p></div><div class="flex justify-between items-center mt-1 border-y-2 border-black py-1"><h3 class="text-md font-bold">WEIGHMENT SLIP</h3><p class="text-xs font-semibold">Original Copy</p></div><div class="slip-font text-xs grid grid-cols-2 gap-x-4 mt-1 border-b border-black pb-1"><div><div class="flex justify-between pr-2"><span>Serial No:</span><strong class="preview-serial-no"></strong></div></div><div class="space-y-0.5"><div class="flex justify-between"><span class="pr-2">In Date/Time:</span><strong class="preview-in-datetime"></strong></div><div class="flex justify-between"><span class="pr-2">Out Date/Time:</span><strong class="preview-out-datetime"></strong></div></div></div><div class="slip-font text-xs grid grid-cols-2 gap-x-6 gap-y-0.5 my-1 py-1 border-b border-black"><div class="flex justify-between"><span>Customer:</span> <strong class="preview-customer-name"></strong></div><div class="flex justify-between"><span>Gross (KG):</span> <strong class="preview-gross-weight text-base">0</strong></div><div class="flex justify-between"><span>Site:</span> <strong class="preview-site"></strong></div><div class="flex justify-between"><span>Tare (KG):</span> <strong class="preview-tare-weight text-base">0</strong></div><div class="flex justify-between"><span>Vehicle No:</span> <strong class="preview-vehicle-number uppercase"></strong></div><div class="flex justify-between border-t border-dashed pt-0.5"><span>Net (KG):</span> <strong class="preview-net-weight text-lg">0</strong></div><div class="flex justify-between"><span>Item:</span> <strong class="preview-item-name"></strong></div><div></div><div class="flex justify-between"><span>Royalty Pass:</span> <strong class="preview-royalty-pass-no"></strong></div><div></div><div class="flex justify-between"><span>Driver Name:</span> <strong class="preview-driver-name"></strong></div></div><div class="text-center text-xs text-slate-600 bg-slate-100 p-1 rounded-md"><p class="preview-net-weight-words capitalize font-semibold">-</p></div><div class="slip-font text-xs flex justify-between mt-1"><span>Charges:</span><strong class="preview-charges">₹0.00</strong></div><div class="grid grid-cols-2 gap-8 mt-3 pt-1 border-t border-slate-300 text-center text-xs"><div><hr class="border-slate-400 border-dashed"><p class="mt-1 font-medium text-slate-500">Operator's Signature</p></div><div><hr class="border-slate-400 border-dashed"><p class="mt-1 font-medium text-slate-500">Driver's Signature</p></div></div>
+                    </div>
+                    
+                    <hr class="my-2 border-dashed border-gray-400">
+
+                    <div class="slip-content-part">
+                         <div class="text-center"><h2 class="preview-company-name text-2xl font-bold text-slate-900">VRUNDAVAN MATERIAL SUPPLIERS</h2><p class="preview-weighbridge-name text-sm text-slate-500">Bhuj, Kutch</p></div><div class="flex justify-between items-center mt-1 border-y-2 border-black py-1"><h3 class="text-md font-bold">WEIGHMENT SLIP</h3><p class="text-xs font-semibold">Customer Copy</p></div><div class="slip-font text-xs grid grid-cols-2 gap-x-4 mt-1 border-b border-black pb-1"><div><div class="flex justify-between pr-2"><span>Serial No:</span><strong class="preview-serial-no"></strong></div></div><div class="space-y-0.5"><div class="flex justify-between"><span class="pr-2">In Date/Time:</span><strong class="preview-in-datetime"></strong></div><div class="flex justify-between"><span class="pr-2">Out Date/Time:</span><strong class="preview-out-datetime"></strong></div></div></div><div class="slip-font text-xs grid grid-cols-2 gap-x-6 gap-y-0.5 my-1 py-1 border-b border-black"><div class="flex justify-between"><span>Customer:</span> <strong class="preview-customer-name"></strong></div><div class="flex justify-between"><span>Gross (KG):</span> <strong class="preview-gross-weight text-base">0</strong></div><div class="flex justify-between"><span>Site:</span> <strong class="preview-site"></strong></div><div class="flex justify-between"><span>Tare (KG):</span> <strong class="preview-tare-weight text-base">0</strong></div><div class="flex justify-between"><span>Vehicle No:</span> <strong class="preview-vehicle-number uppercase"></strong></div><div class="flex justify-between border-t border-dashed pt-0.5"><span>Net (KG):</span> <strong class="preview-net-weight text-lg">0</strong></div><div class="flex justify-between"><span>Item:</span> <strong class="preview-item-name"></strong></div><div></div><div class="flex justify-between"><span>Royalty Pass:</span> <strong class="preview-royalty-pass-no"></strong></div><div></div><div class="flex justify-between"><span>Driver Name:</span> <strong class="preview-driver-name"></strong></div></div><div class="text-center text-xs text-slate-600 bg-slate-100 p-1 rounded-md"><p class="preview-net-weight-words capitalize font-semibold">-</p></div><div class="slip-font text-xs flex justify-between mt-1"><span>Charges:</span><strong class="preview-charges">₹0.00</strong></div><div class="grid grid-cols-2 gap-8 mt-3 pt-1 border-t border-slate-300 text-center text-xs"><div><hr class="border-slate-400 border-dashed"><p class="mt-1 font-medium text-slate-500">Operator's Signature</p></div><div><hr class="border-slate-400 border-dashed"><p class="mt-1 font-medium text-slate-500">Driver's Signature</p></div></div>
+                    </div>
+                </div>
+             </main>
+             <div class="mt-12 mx-auto container no-print">
+                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4 border-b pb-2">Your Saved Slips</h2>
+                    <div id="saved-slips-list" class="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
+                        <p id="slips-message" class="text-center text-slate-500 p-4">Login to see your saved slips.</p>
+                    </div>
+                </div>
+             </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+    <div id="delete-modal" class="modal-overlay">
+        <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center"><h3 class="text-xl font-bold text-slate-800">Are you sure?</h3><p class="text-slate-500 mt-2 mb-6">Do you really want to delete this slip? This action cannot be undone.</p><div class="grid grid-cols-2 gap-4"><button id="cancel-delete-btn" class="bg-slate-200 text-slate-800 font-bold py-3 rounded-lg hover:bg-slate-300">Cancel</button><button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700">Delete</button></div></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBo2WNRw3oKGCNyekls4pgpaoVesjri0-8",
+            authDomain: "vrundavan-1f1c9.firebaseapp.com",
+            projectId: "vrundavan-1f1c9",
+            storageBucket: "vrundavan-1f1c9.firebasestorage.app",
+            messagingSenderId: "397473253195",
+            appId: "1:397473253195:web:14394ef43a325a00a78ace",
+            measurementId: "G-CC5DL2RD8Y"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const authContainer = document.getElementById('auth-container'); const appContainer = document.getElementById('app-container'); const loginForm = document.getElementById('login-form'); const signupForm = document.getElementById('signup-form'); const userEmailSpan = document.getElementById('user-email'); const editingSlipIdInput = document.getElementById('editing-slip-id'); const saveUpdateBtn = document.getElementById('save-update-btn'); const formModeIndicator = document.getElementById('form-mode-indicator'); const deleteModal = document.getElementById('delete-modal'); const confirmDeleteBtn = document.getElementById('confirm-delete-btn'); const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let slipsCollectionRef; let allSlipsData = []; const form = document.getElementById('weighbridge-form'); const formInputs = form.querySelectorAll('input');
+
+        function showToast(message, isError = false) { const toast = document.getElementById('toast'); toast.textContent = message; toast.className = `toast show ${isError ? 'bg-red-600' : 'bg-green-600'}`; setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000); }
+        function numberToWords(num) { if (num === 0) return 'Zero'; const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen']; const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']; const inWords = (n) => { let str = ''; if (n > 99) { str += a[Math.floor(n / 100)] + ' Hundred '; n %= 100; } if (n > 19) { str += b[Math.floor(n / 10)] + ' ' + a[n % 10]; } else { str += a[n]; } return str.trim(); }; let result = ''; const crore = Math.floor(num / 10000000); num %= 10000000; const lakh = Math.floor(num / 100000); num %= 100000; const thousand = Math.floor(num / 1000); num %= 1000; if (crore > 0) result += inWords(crore) + ' Crore '; if (lakh > 0) result += inWords(lakh) + ' Lakh '; if (thousand > 0) result += inWords(thousand) + ' Thousand '; if (num > 0) result += inWords(num); return result.trim().replace(/\s+/g, ' '); }
+        
+        const previewMapping = { 'company-name': { selector: '.preview-company-name' }, 'weighbridge-name': { selector: '.preview-weighbridge-name' }, 'serial-no': { selector: '.preview-serial-no' }, 'customer-name': { selector: '.preview-customer-name' }, 'site': { selector: '.preview-site' }, 'vehicle-number': { selector: '.preview-vehicle-number' }, 'item-name': { selector: '.preview-item-name' }, 'royalty-pass-no': { selector: '.preview-royalty-pass-no' }, 'driver-name': { selector: '.preview-driver-name' }, 'charges': { selector: '.preview-charges', format: val => `₹${parseFloat(val || 0).toFixed(2)}` }, 'gross-weight': { selector: '.preview-gross-weight', format: val => `${val || 0}` }, 'tare-weight': { selector: '.preview-tare-weight', format: val => `${val || 0}` }, };
+        function updateDateTimePreview() { const inDate = document.getElementById('in-date').value; const inTime = document.getElementById('in-time').value; const outDate = document.getElementById('out-date').value; const outTime = document.getElementById('out-time').value; let inDateTimeStr = '-'; if (inDate) { inDateTimeStr = new Date(inDate).toLocaleDateString('en-GB'); if (inTime) inDateTimeStr += ` ${new Date(`1970-01-01T${inTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`; } let outDateTimeStr = '-'; if (outDate) { outDateTimeStr = new Date(outDate).toLocaleDateString('en-GB'); if (outTime) outDateTimeStr += ` ${new Date(`1970-01-01T${outTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`; } document.querySelectorAll('.preview-in-datetime').forEach(el => el.textContent = inDateTimeStr); document.querySelectorAll('.preview-out-datetime').forEach(el => el.textContent = outDateTimeStr); }
+        function calculateNetWeight() { const gross = parseFloat(document.getElementById('gross-weight').value) || 0; const tare = parseFloat(document.getElementById('tare-weight').value) || 0; const net = Math.abs(gross - tare); document.querySelectorAll('.preview-net-weight').forEach(el => el.textContent = `${net}`); document.querySelectorAll('.preview-net-weight-words').forEach(el => el.textContent = net > 0 ? `${numberToWords(net)} Kilograms Only` : '-'); }
+        function updatePreviewFromForm() { formInputs.forEach(input => { const target = previewMapping[input.id]; if (!target) return; const elements = document.querySelectorAll(target.selector); const formattedValue = typeof target.format === 'function' ? target.format(input.value) : input.value; elements.forEach(element => { element.textContent = formattedValue || '-'; if (input.id === 'vehicle-number') { element.classList.add('uppercase'); } }); }); updateDateTimePreview(); calculateNetWeight(); }
+
+        function setFormMode(mode, slipId = null) { if (mode === 'edit') { editingSlipIdInput.value = slipId; saveUpdateBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Update Slip`; saveUpdateBtn.classList.replace('bg-blue-600', 'bg-green-600'); saveUpdateBtn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700'); formModeIndicator.classList.remove('hidden'); } else { editingSlipIdInput.value = ''; saveUpdateBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save & Print Slip`; saveUpdateBtn.classList.replace('bg-green-600', 'bg-blue-600'); saveUpdateBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700'); formModeIndicator.classList.add('hidden'); } }
+        function populateForm(data) { formInputs.forEach(input => { if (data[input.id] !== undefined) { input.value = data[input.id]; } }); updatePreviewFromForm(); setFormMode('edit', data.id); }
+        
+        async function getNextSerialNumber() {
+            if (!auth.currentUser) return Math.floor(10000 + Math.random() * 90000);
+            const counterRef = db.collection('users').doc(auth.currentUser.uid).collection('metadata').doc('serialCounter');
+            try {
+                let newSerialNo = 101;
+                await db.runTransaction(async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    if (!counterDoc.exists) {
+                        newSerialNo = 101;
+                    } else {
+                        const lastSerial = counterDoc.data().lastSerial || 100;
+                        newSerialNo = lastSerial + 1;
+                    }
+                    transaction.set(counterRef, { lastSerial: newSerialNo });
+                });
+                return newSerialNo;
+            } catch (error) {
+                console.error("Error in transaction:", error);
+                showToast("Could not generate serial number.", true);
+                return Math.floor(10000 + Math.random() * 90000);
+            }
+        }
+
+        async function clearFormForNewSlip() { 
+            form.reset(); 
+            document.getElementById('company-name').value = "VRUNDAVAN MATERIAL SUPPLIERS"; 
+            document.getElementById('weighbridge-name').value = "Bhuj, Kutch"; 
+            const nextSerial = await getNextSerialNumber();
+            document.getElementById('serial-no').value = nextSerial;
+            const now = new Date(); 
+            document.getElementById('in-date').value = now.toISOString().split('T')[0]; 
+            document.getElementById('in-time').value = now.toTimeString().split(' ')[0].substring(0, 5); 
+            updatePreviewFromForm(); 
+            setFormMode('new'); 
+        }
+        
+        async function saveSlip() { if (!slipsCollectionRef) { showToast("Not logged in.", true); return false; } const vehicleNumber = document.getElementById('vehicle-number').value; if (!vehicleNumber.trim()) { showToast("Vehicle Number is required to save.", true); return false; } const slipData = {}; formInputs.forEach(input => slipData[input.id] = input.value); slipData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); try { const docRef = await slipsCollectionRef.add(slipData); populateForm({id: docRef.id, ...slipData}); showToast("Slip saved successfully!"); return true; } catch (error) { console.error("Error adding document: ", error); showToast("Error saving slip.", true); return false; } }
+        async function updateSlip(slipId) { const slipData = {}; formInputs.forEach(input => slipData[input.id] = input.value); slipData.updatedAt = firebase.firestore.FieldValue.serverTimestamp(); try { await slipsCollectionRef.doc(slipId).update(slipData); showToast("Slip updated successfully!"); return true; } catch (error) { console.error("Error updating document: ", error); showToast("Error updating slip.", true); return false; } }
+        
+        function fetchAndRenderSlips() { 
+            if (!slipsCollectionRef) return; 
+            slipsCollectionRef.orderBy("createdAt", "desc").onSnapshot((querySnapshot) => { 
+                const listElement = document.getElementById('saved-slips-list'); 
+                listElement.innerHTML = ''; 
+                allSlipsData = []; 
+                if (querySnapshot.empty) { 
+                    listElement.innerHTML = '<p class="text-center text-slate-500 p-4">You have no saved slips yet.</p>'; 
+                    return; 
+                } 
+                querySnapshot.forEach((doc) => { 
+                    const slip = { id: doc.id, ...doc.data() }; 
+                    allSlipsData.push(slip); 
+                    const dateStr = slip.createdAt ? slip.createdAt.toDate().toLocaleDateString('en-GB') : new Date(slip.in-date).toLocaleDateString('en-GB');
+                    const slipCard = `
+                    <div class="grid grid-cols-2 md:grid-cols-7 gap-x-4 gap-y-2 items-center p-3 bg-slate-50 rounded-lg border">
+                        <div class="font-semibold text-slate-800 col-span-2 md:col-span-1">#${slip['serial-no'] || 'N/A'}</div>
+                        <div class="text-slate-600 truncate"><strong>Cust:</strong> ${slip['customer-name'] || '-'}</div>
+                        <div class="text-slate-600 uppercase truncate"><strong>Vehicle:</strong> ${slip['vehicle-number'] || '-'}</div>
+                        <div class="text-slate-600 truncate"><strong>Site:</strong> ${slip['site'] || '-'}</div>
+                        <div class="text-slate-500 text-sm">${dateStr || '-'}</div>
+                        <div class="flex items-center gap-2 justify-end col-span-2">
+                            <button data-id="${slip.id}" class="edit-btn text-sm bg-yellow-100 text-yellow-800 font-semibold px-3 py-1 rounded-md hover:bg-yellow-200">Edit</button>
+                            <button data-id="${slip.id}" class="print-btn text-sm bg-blue-100 text-blue-800 font-semibold px-3 py-1 rounded-md hover:bg-blue-200">Print</button>
+                            <button data-id="${slip.id}" class="delete-btn text-sm bg-red-100 text-red-800 font-semibold px-3 py-1 rounded-md hover:bg-red-200">Delete</button>
+                        </div>
+                    </div>`;
+                    listElement.insertAdjacentHTML('beforeend', slipCard); 
+                }); 
+            }, (error) => { 
+                console.error("Error fetching slips: ", error); 
+                document.getElementById('slips-message').textContent = 'Error fetching data. Check Firebase rules.'; 
+            }); 
+        }
+
+        function showDeleteConfirmation(slipId) { deleteModal.classList.add('show'); confirmDeleteBtn.dataset.slipId = slipId; }
+        function hideDeleteConfirmation() { deleteModal.classList.remove('show'); confirmDeleteBtn.dataset.slipId = ''; }
+        
+        auth.onAuthStateChanged(async (user) => { 
+            if (user) { 
+                authContainer.classList.add('hidden'); 
+                appContainer.classList.remove('hidden'); 
+                userEmailSpan.textContent = user.email; 
+                slipsCollectionRef = db.collection('users').doc(user.uid).collection('slips'); 
+                fetchAndRenderSlips(); 
+                await clearFormForNewSlip(); 
+            } else { 
+                authContainer.classList.remove('hidden'); 
+                appContainer.classList.add('hidden'); 
+                document.getElementById('saved-slips-list').innerHTML = '<p id="slips-message" class="text-center text-slate-500 p-4">Login to see your saved slips.</p>'; 
+            } 
+        });
+
+        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); signupForm.classList.remove('hidden'); }); 
+        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); signupForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
+        signupForm.addEventListener('submit', (e) => { e.preventDefault(); const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; auth.createUserWithEmailAndPassword(email, password).then(userCredential => showToast("Account created successfully!")).catch(error => showToast(error.message, true)); });
+        loginForm.addEventListener('submit', (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; auth.signInWithEmailAndPassword(email, password).catch(error => showToast(error.message, true)); });
+        document.getElementById('logout-btn').addEventListener('click', () => { auth.signOut(); });
+        saveUpdateBtn.addEventListener('click', async () => { const slipId = editingSlipIdInput.value; let success = false; if (slipId) { success = await updateSlip(slipId); } else { success = await saveSlip(); } if (success) { setTimeout(() => window.print(), 500); } });
+        document.getElementById('new-slip-btn').addEventListener('click', async () => { await clearFormForNewSlip(); });
+        document.getElementById('saved-slips-list').addEventListener('click', (e) => {
+            const targetButton = e.target.closest('button');
+            if (!targetButton) return;
+            const slipId = targetButton.dataset.id;
+            const slipData = allSlipsData.find(s => s.id === slipId);
+            if (!slipData) return;
+            if (targetButton.classList.contains('edit-btn')) {
+                populateForm(slipData);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (targetButton.classList.contains('print-btn')) {
+                populateForm(slipData);
+                setTimeout(() => window.print(), 100);
+            } else if (targetButton.classList.contains('delete-btn')) {
+                showDeleteConfirmation(slipId);
+            }
+        });
+        cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+        confirmDeleteBtn.addEventListener('click', async () => { const slipId = confirmDeleteBtn.dataset.slipId; if (slipId && slipsCollectionRef) { try { await slipsCollectionRef.doc(slipId).delete(); showToast("Slip deleted successfully."); if (editingSlipIdInput.value === slipId) { await clearFormForNewSlip(); } } catch (error) { console.error("Error deleting document: ", error); showToast("Error deleting slip.", true); } finally { hideDeleteConfirmation(); } } });
+        form.addEventListener('input', updatePreviewFromForm);
+        document.addEventListener('DOMContentLoaded', () => { setFormMode('new'); });
+    </script>
+</body>
+</html>
+"
+
